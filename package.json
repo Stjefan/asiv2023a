@@ -10,7 +10,9 @@
     "hot",
     "reload"
   ],
-  "version": "5.0.0",
+  "name": "asiv2023a",
+  "productName": "ASIV 2023",
+  "version": "5.0.1",
   "homepage": "https://github.com/Stjefan/asiv2023a",
 
   "repository": {
