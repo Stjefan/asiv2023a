@@ -195,6 +195,32 @@ export default class MenuBuilder {
   buildDefaultTemplate() {
     const templateDefault = [
       {
+        label: 'Navigation',
+        submenu: [
+          {
+            label: 'Go Back',
+            accelerator:
+              process.platform === 'darwin' ? 'Command+Left' : 'Alt+Left',
+            click: () => {
+              if (this.mainWindow.webContents.canGoBack()) {
+                this.mainWindow.webContents.goBack();
+              }
+            },
+          },
+          {
+            label: 'Go Forward',
+            accelerator:
+              process.platform === 'darwin' ? 'Command+Left' : 'Alt+Right',
+            click: () => {
+              if (this.mainWindow.webContents.canGoForward()) {
+                this.mainWindow.webContents.goForward();
+              }
+            },
+          },
+          // Add other menu items as needed
+        ],
+      },
+      {
         label: '&File',
         submenu: [
           {

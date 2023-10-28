@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint global-require: off, no-console: off, promise/always-return: off */
 
 /**
@@ -15,20 +16,49 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
+let mainWindow: BrowserWindow | null = null;
+
+function sendStatusToWindow(text: any) {
+  log.info(text);
+  mainWindow?.webContents.send('ipc-example', text);
+}
+
 class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
+    sendStatusToWindow('Constructor');
     autoUpdater.checkForUpdatesAndNotify();
+
+    autoUpdater.on('checking-for-update', () => {
+      sendStatusToWindow('Checking for update...');
+    });
+    autoUpdater.on('update-available', (info: any) => {
+      sendStatusToWindow('Update available.');
+    });
+    autoUpdater.on('update-not-available', (info: any) => {
+      sendStatusToWindow('Update not available.');
+    });
+    autoUpdater.on('error', (err) => {
+      sendStatusToWindow(`Error in auto-updater. ${err}`);
+    });
+    autoUpdater.on('download-progress', (progressObj: any) => {
+      let log_message = `Download speed: ${progressObj.bytesPerSecond}`;
+      log_message = `${log_message} - Downloaded ${progressObj.percent}%`;
+      log_message = `${log_message} (${progressObj.transferred}/${progressObj.total})`;
+      sendStatusToWindow(log_message);
+    });
+    autoUpdater.on('update-downloaded', (info: any) => {
+      console.log('Update downloaded', info);
+    });
   }
 }
 
-let mainWindow: BrowserWindow | null = null;
-
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+  // console.log(msgTemplate(arg));
+  autoUpdater.checkForUpdatesAndNotify()
+  event.reply('ipc-example', msgTemplate(`pong ${arg}!!!,`));
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -94,7 +124,7 @@ const createWindow = async () => {
     }
   });
 
-  mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -111,7 +141,8 @@ const createWindow = async () => {
 
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
-  new AppUpdater();
+  const a = new AppUpdater();
+  console.log(a);
 };
 
 /**
