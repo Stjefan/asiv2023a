@@ -2,7 +2,7 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-example';
+export type Channels = 'ipc-example' | 'open-file-dialog' | 'selected-file';
 
 const electronHandler = {
   ipcRenderer: {
@@ -24,6 +24,12 @@ const electronHandler = {
   },
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+// contextBridge.exposeInMainWorld('electron', electronHandler);
+
+(window as any).electronStuff = {
+  ipcRenderer,
+  openFileDialog: () => ipcRenderer.send('open-file-dialog'),
+  selectFile: () => ipcRenderer.invoke('selectFile'),
+};
 
 export type ElectronHandler = typeof electronHandler;

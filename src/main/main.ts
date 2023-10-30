@@ -10,13 +10,28 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
+import { exposeIpcMainRxStorage } from 'rxdb/plugins/electron';
+import { getRxStorageLoki } from 'rxdb/plugins/storage-lokijs';
+import LokiFsStructuredAdapter from 'lokijs/src/loki-fs-structured-adapter.js';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 let mainWindow: BrowserWindow | null = null;
+
+function setUpCustomExtensions() {
+  const storage = getRxStorageLoki({
+    adapter: new LokiFsStructuredAdapter(),
+  });
+
+  exposeIpcMainRxStorage({
+    key: 'main-storage',
+    storage,
+    ipcMain,
+  });
+}
 
 function sendStatusToWindow(text: any) {
   log.info(text);
@@ -34,10 +49,10 @@ class AppUpdater {
       sendStatusToWindow('Checking for update...');
     });
     autoUpdater.on('update-available', (info: any) => {
-      sendStatusToWindow('Update available.');
+      sendStatusToWindow(`Update available: ${info}`);
     });
     autoUpdater.on('update-not-available', (info: any) => {
-      sendStatusToWindow('Update not available.');
+      sendStatusToWindow(`Update not available: ${info}`);
     });
     autoUpdater.on('error', (err) => {
       sendStatusToWindow(`Error in auto-updater. ${err}`);
@@ -55,10 +70,25 @@ class AppUpdater {
 }
 
 ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
+  const msgTemplate = (pingPong: string) => `IPC test 111: ${pingPong}`;
   // console.log(msgTemplate(arg));
-  autoUpdater.checkForUpdatesAndNotify()
-  event.reply('ipc-example', msgTemplate(`pong ${arg}!!!,`));
+  autoUpdater.checkForUpdatesAndNotify();
+  event.reply('ipc-example', msgTemplate(`pong 123 ${arg}!!!,`));
+});
+
+ipcMain.on('open-file-dialog', (event) => {
+  dialog
+    .showOpenDialog({
+      properties: ['openDirectory'],
+    })
+    .then((result) => {
+      if (!result.canceled && result.filePaths.length > 0) {
+        event.reply('selected-file', result.filePaths[0]);
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -108,6 +138,8 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false,
     },
   });
 
@@ -161,6 +193,7 @@ app
   .whenReady()
   .then(() => {
     createWindow();
+    setUpCustomExtensions();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

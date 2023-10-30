@@ -12,9 +12,8 @@
   ],
   "name": "asiv2023a",
   "productName": "ASIV 2023",
-  "version": "5.0.5",
+  "version": "5.0.7",
   "homepage": "https://github.com/Stjefan/asiv2023a",
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Stjefan/asiv2023a.git"
@@ -93,7 +92,10 @@
     "electron-updater": "^6.1.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0"
+    "react-router-dom": "^6.16.0",
+    "rxdb": "^14.17.1",
+    "unique-names-generator": "^4.7.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
@@ -165,7 +167,6 @@
   "build": {
     "productName": "ASIV 2023a",
     "appId": "com.github.stjefan.asiv2023a",
-
     "files": [
       "dist",
       "node_modules",
@@ -191,7 +192,6 @@
       "repo": "asiv2023a"
     }
   },
-
   "devEngines": {
     "node": ">=14.x",
     "npm": ">=7.x"
